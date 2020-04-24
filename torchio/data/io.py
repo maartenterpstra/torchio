@@ -1,28 +1,37 @@
 from pathlib import Path
-from typing import Tuple
+from typing import Tuple, Union
 import torch
 import numpy as np
 import nibabel as nib
 import SimpleITK as sitk
 from .. import TypePath, TypeData
-from ..utils import nib_to_sitk, sitk_to_nib
+from ..utils import nib_to_sitk, sitk_to_nib, np_to_nib
 
 
 def read_image(
-        path: TypePath,
+        path: Union[TypePath, np.array],
         itk_first: bool = False,
         ) -> Tuple[torch.Tensor, np.ndarray]:
-    if itk_first:
-        try:
-            result = _read_sitk(path)
-        except RuntimeError:  # try with NiBabel
-            result = _read_nibabel(path)
+
+    if isinstance(path, np.ndarray):
+        data, affine = np_to_nib(path)
+        if data.dtype != np.float32:
+            data = data.astype(np.float32)
+        tensor = torch.from_numpy(data)
+        return tensor, affine
+
     else:
-        try:
-            result = _read_nibabel(path)
-        except nib.loadsave.ImageFileError:  # try with ITK
-            result = _read_sitk(path)
-    return result
+        if itk_first:
+            try:
+                result = _read_sitk(path)
+            except RuntimeError:  # try with NiBabel
+                result = _read_nibabel(path)
+        else:
+            try:
+                result = _read_nibabel(path)
+            except nib.loadsave.ImageFileError:  # try with ITK
+                result = _read_sitk(path)
+        return result
 
 
 def _read_nibabel(path: TypePath) -> Tuple[torch.Tensor, np.ndarray]:

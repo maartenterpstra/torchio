@@ -8,7 +8,6 @@ from typing import (
 from ..torchio import DATA, TYPE, INTENSITY
 from .image import Image
 
-
 class Subject(dict):
     """Class to store information about the images corresponding to a subject.
 
@@ -61,6 +60,7 @@ class Subject(dict):
         string = (
             f'{self.__class__.__name__}'
             f'(Keys: {tuple(self.keys())}; images: {len(self.images)})'
+
         )
         return string
 

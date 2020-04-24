@@ -1,6 +1,6 @@
 from typing import Union, Tuple, Optional, List
 import torch
-from ....torchio import DATA
+from ....torchio import DATA, TYPE, DVF
 from ....data.subject import Subject
 from ....utils import to_tuple
 from .. import RandomTransform
@@ -41,11 +41,50 @@ class RandomFlip(RandomTransform):
                     continue
                 actual_dim = dim + 1  # images are 4D
                 dims.append(actual_dim)
-            tensor = torch.flip(tensor, dims=dims)
+
+
+            if image_dict[TYPE] == DVF:
+                tensor = self._fix_dvf(tensor, dims)
+            else:
+                tensor = torch.flip(tensor, dims=dims)
             image_dict[DATA] = tensor
         sample.add_transform(self, random_parameters_dict)
         return sample
 
+    @staticmethod
+    def _fix_dvf(tensor, dims):
+        dims = sorted(dims)
+        flipdims = list(map(lambda x: x + 1, dims))
+        if dims == [1]:
+            tensor[:, 1] = torch.flip(tensor[:, 1], [1])
+            tensor[:, 2] = -tensor[:, 2]
+        if dims == [2]:
+            tensor[:, 0] = torch.flip(tensor[:, 0], [1])
+            tensor[:, 1] = -tensor[:, 1]
+        if dims == [3]:
+            tensor[:, 2] = torch.flip(tensor[:, 2], [1])
+            tensor[:, 0] = -tensor[:, 0]
+
+        if dims == [1, 2]:
+            tensor[:, 0] = torch.flip(tensor[:, 0], [1])
+            tensor[:, 1] = -torch.flip(tensor[:, 1], [1])
+            tensor[:, 2] = -tensor[:, 2]
+        if dims == [1, 3]:
+            tensor[:, 0] = -tensor[:, 0]
+            tensor[:, 1] = torch.flip(tensor[:, 1], [1])
+            tensor[:, 2] = -torch.flip(tensor[:, 2], [1])
+
+        if dims == [2, 3]:
+            tensor[:, 0] = -torch.flip(tensor[:, 0], [1])
+            tensor[:, 1] = -tensor[:, 1]
+            tensor[:, 2] = torch.flip(tensor[:, 2], [1])
+
+        if dims == [1, 2, 3]:
+            tensor[:, 1] = -torch.flip(tensor[:, 1], [1])
+            tensor[:, 0] = -torch.flip(tensor[:, 0], [1])
+            tensor[:, 2] = -torch.flip(tensor[:, 2], [1])
+
+        return torch.flip(tensor, flipdims)
     @staticmethod
     def get_params(axes: Tuple[int, ...], probability: float) -> List[bool]:
         axes_hot = [False, False, False]

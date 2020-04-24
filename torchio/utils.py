@@ -170,6 +170,10 @@ def nib_to_sitk(data: TypeData, affine: TypeData) -> sitk.Image:
     return image
 
 
+def np_to_nib(image: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+    sitk_image = sitk.GetImageFromArray(image)
+    return sitk_to_nib(sitk_image)
+
 def sitk_to_nib(image: sitk.Image) -> Tuple[np.ndarray, np.ndarray]:
     data = sitk.GetArrayFromImage(image).transpose()
     spacing = np.array(image.GetSpacing())

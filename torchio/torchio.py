@@ -9,6 +9,7 @@ __all__ = [
     'INTENSITY',
     'LABEL',
     'SAMPLING_MAP',
+    'DVF',
     'PATH',
     'TYPE',
     'STEM',
@@ -29,7 +30,7 @@ __all__ = [
 INTENSITY = 'intensity'
 LABEL = 'label'
 SAMPLING_MAP = 'sampling_map'
-
+DVF = 'dvf'
 # Keys for dataset samples
 PATH = 'path'
 TYPE = 'type'

@@ -5,6 +5,7 @@ from typing import (
     Sequence,
     Optional,
     Callable,
+    Union
 )
 from torch.utils.data import Dataset
 from ..utils import get_stem
@@ -12,6 +13,7 @@ from ..torchio import DATA, AFFINE, TYPE, PATH, STEM, TypePath
 from .image import Image
 from .io import write_image
 from .subject import Subject
+from .hdfsubject import HDFSubject
 
 
 class ImagesDataset(Dataset):
@@ -95,7 +97,7 @@ class ImagesDataset(Dataset):
 
     def __init__(
             self,
-            subjects: Sequence[Subject],
+            subjects: Sequence[Union[Subject, HDFSubject]],
             transform: Optional[Callable] = None,
             check_nans: bool = True,
             load_image_data: bool = True,
@@ -115,6 +117,8 @@ class ImagesDataset(Dataset):
         if not isinstance(index, int):
             raise ValueError(f'Index "{index}" must be int, not {type(index)}')
         subject = self.subjects[index]
+        if isinstance(subject, HDFSubject):
+            subject = subject.to_subject();
         sample = self._get_sample_dict_from_subject(subject)
 
         # Apply transform (this is usually the bottleneck)
@@ -159,8 +163,8 @@ class ImagesDataset(Dataset):
             DATA: tensor,
             AFFINE: affine,
             TYPE: image.type,
-            PATH: str(image.path),
-            STEM: get_stem(image.path),
+            # PATH: str(image.path),
+            # STEM: get_stem(image.path),
         }
         image = copy.deepcopy(image)
         image.update(image_dict)
@@ -179,7 +183,7 @@ class ImagesDataset(Dataset):
         self._transform = transform
 
     @staticmethod
-    def _parse_subjects_list(subjects_list: Sequence[Subject]) -> None:
+    def _parse_subjects_list(subjects_list: Sequence[Union[Subject, HDFSubject]]) -> None:
         # Check that it's list or tuple
         if not isinstance(subjects_list, collections.abc.Sequence):
             raise TypeError(
@@ -191,9 +195,9 @@ class ImagesDataset(Dataset):
 
         # Check each element
         for subject in subjects_list:
-            if not isinstance(subject, Subject):
+            if not (isinstance(subject, HDFSubject) or isinstance(subject, Subject)):
                 message = (
-                    'Subjects list must contain instances of torchio.Subject,'
+                    'Subjects list must contain instances of torchio.Subject or torchio.HDFSubject,'
                     f' not "{type(subject)}"'
                 )
                 raise TypeError(message)

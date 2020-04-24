@@ -4,6 +4,7 @@ from typing import (
     Any,
     Dict,
     Tuple,
+    Union
 )
 
 import torch
@@ -28,9 +29,12 @@ class Image(dict):
             subject sample.
     """
 
-    def __init__(self, path: TypePath, type_: str, **kwargs: Dict[str, Any]):
+    def __init__(self, path: Union[TypePath, np.array], type_: str, **kwargs: Dict[str, Any]):
         super().__init__(**kwargs)
-        self.path = self._parse_path(path)
+        if isinstance(path, np.ndarray):
+            self.path = path;
+        else:
+            self.path = self._parse_path(path)
         self.type = type_
         self.is_sample = False  # set to True by ImagesDataset
 
