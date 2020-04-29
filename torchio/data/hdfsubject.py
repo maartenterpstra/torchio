@@ -96,6 +96,6 @@ class HDFSubject(dict):
             hdf_path = self.get('hdfpath')
 
             for i, key in enumerate(keys):
-                dic[key] = Image(hdf_file[hdf_path[i]].value[()].T, labels[i])
+                dic[key] = Image(hdf_file[hdf_path[i]][()], labels[i])
 
         return Subject(dic)

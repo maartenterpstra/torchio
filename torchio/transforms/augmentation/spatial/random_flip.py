@@ -53,38 +53,14 @@ class RandomFlip(RandomTransform):
 
     @staticmethod
     def _fix_dvf(tensor, dims):
-        dims = sorted(dims)
-        flipdims = list(map(lambda x: x + 1, dims))
-        if dims == [1]:
-            tensor[:, 1] = torch.flip(tensor[:, 1], [1])
-            tensor[:, 2] = -tensor[:, 2]
-        if dims == [2]:
-            tensor[:, 0] = torch.flip(tensor[:, 0], [1])
-            tensor[:, 1] = -tensor[:, 1]
-        if dims == [3]:
-            tensor[:, 2] = torch.flip(tensor[:, 2], [1])
-            tensor[:, 0] = -tensor[:, 0]
+        if 1 in dims:
+            tensor[..., 0] = -tensor[..., 0]
+        if 2 in dims:
+            tensor[..., 1] = -tensor[..., 1]
+        if 3 in dims:
+            tensor[..., 2] = -tensor[..., 2]
 
-        if dims == [1, 2]:
-            tensor[:, 0] = torch.flip(tensor[:, 0], [1])
-            tensor[:, 1] = -torch.flip(tensor[:, 1], [1])
-            tensor[:, 2] = -tensor[:, 2]
-        if dims == [1, 3]:
-            tensor[:, 0] = -tensor[:, 0]
-            tensor[:, 1] = torch.flip(tensor[:, 1], [1])
-            tensor[:, 2] = -torch.flip(tensor[:, 2], [1])
-
-        if dims == [2, 3]:
-            tensor[:, 0] = -torch.flip(tensor[:, 0], [1])
-            tensor[:, 1] = -tensor[:, 1]
-            tensor[:, 2] = torch.flip(tensor[:, 2], [1])
-
-        if dims == [1, 2, 3]:
-            tensor[:, 1] = -torch.flip(tensor[:, 1], [1])
-            tensor[:, 0] = -torch.flip(tensor[:, 0], [1])
-            tensor[:, 2] = -torch.flip(tensor[:, 2], [1])
-
-        return torch.flip(tensor, flipdims)
+        return torch.flip(tensor, dims=dims)
     @staticmethod
     def get_params(axes: Tuple[int, ...], probability: float) -> List[bool]:
         axes_hot = [False, False, False]
